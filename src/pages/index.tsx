@@ -7,7 +7,8 @@ import { useState } from "react";
 import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
-import { idText } from "typescript";
+import { configureStore } from '@reduxjs/toolkit';
+import { createWrapper } from 'next-redux-wrapper';
 import produce from "immer";
 
 interface TodoProp {
@@ -15,22 +16,27 @@ interface TodoProp {
   name: string;
   status: boolean;
   priority: string;
+  point: number;
 }
 export default function Home() {
   const [edit, setEdit] = useState(-1);
   const [works, setWorks] = useState("");
   const [prevValue, setPrevValue] = useState("");
-  const [status, setStatus] = useState(false);
+  const [prevNum, setPrevNum] = useState(0);
+  // const [status, setStatus] = useState(false);
   const [priority, setPriority] = useState("Hight");
+  const [point, setPoint] = useState(1);
   const [todos, setTodos] = useState<TodoProp[]>([]);
   const ref = useRef<Array<HTMLDivElement | null>>([]);
 
+  const min = 1;
+  const max = 100;
   useEffect(() => {
-    console.log("totos", todos);
+    // console.log("totos", todos);
   }, [todos]);
 
   const handleAddState = () => {
-    if (works)
+    if (works && point)
       setTodos((prev) => [
         ...prev,
         {
@@ -38,9 +44,11 @@ export default function Home() {
           name: works,
           status: false,
           priority: priority,
+          point: point,
         },
       ]);
     setWorks("");
+    setPoint(1);
   };
   //
   const handleDeleteJob = (todoId: number) => {
@@ -51,7 +59,6 @@ export default function Home() {
 
   const handleEditJob = (index: number) => {
     setEdit(index);
-    console.log(index);
   };
 
   const handleBlur = (idItem: number) => {
@@ -59,10 +66,12 @@ export default function Home() {
       const curPrev = [...prev];
       const newValue = curPrev.findIndex((e) => e.id === idItem);
       curPrev[newValue].name = prevValue;
+      curPrev[newValue].point = prevNum;
 
       return curPrev;
     });
   };
+
 
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>,
@@ -84,12 +93,10 @@ export default function Home() {
     });
 
     setTodos(nextState);
-
   };
 
   useEffect(() => {
     if (ref.current[edit]) {
-      console.log(ref.current[edit]);
 
       ref.current[edit]!.focus();
     }
@@ -99,6 +106,10 @@ export default function Home() {
     setPriority(e.target.value);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(min, Math.min(max, Number(e.target.value)));
+    setPoint(value);
+  };
   return (
     <div className="flex items-center justify-center h-screen w-vw bg-[#489cc1]">
       <div className="flex flex-col h-auto gap-8 bg-white items-center justify-center relative ">
@@ -108,13 +119,19 @@ export default function Home() {
         <div className="flex ">
           <div className="flex items-center justify-center ml-5 border border-black mr-9">
             <input
-              onFocus={() => {}}
               value={works}
               type={"text"}
               onChange={(e) => setWorks(e.target.value)}
-              id="firstInput"
-              className="outline-none px-4 py-2 w-[300px] box-border"
+              className="outline-none px-4 py-2 w-[300px] box-border mr-2"
               placeholder="What needs to be done"
+            />
+            <input
+              type="number"
+              placeholder="point"
+              className="w-10 mr-3"
+              value={point}
+              onChange={(e) => handleChange(e)}
+
             />
             <select value={priority} onChange={(e) => handleSelect(e)}>
               <option value={"Hight"}>Hight</option>
@@ -131,26 +148,58 @@ export default function Home() {
           </button>
         </div>
 
-        <ul className="w-full box-border pl-5 ">
+        <ul className="w-[80%] box-border pl-5">
           {todos.map((item, i) => {
             return (
-              <li key={i} className="flex gap-10 items-center ">
+              <li key={i} className="grid grid-cols-3 gap-10 items-center justify-between">
+                <div className="flex">
+
+                  <input
+                    type="checkbox"
+                    checked={item.status}
+                    onChange={() => handleCheck(i, !item.status)}
+                    className="w-full inline-block"
+                  />
+                  <input
+                    disabled={edit !== i}
+                    id={`${item.id}`}
+                    type="text"
+                    name={item.name}
+                    ref={(el) => (ref.current[i] = el)}
+                    value={item.name}
+                    className={`pl-3 ${item.status ? "line-through" : {}} w-full flex justify-between`}
+                    onBlur={() => handleBlur(item.id)}
+                    onFocus={() => {
+                      setPrevValue(item.name);
+                    }}
+                    onChange={(e) => {
+                      setTodos((prev) => {
+                        const newTodos = [...prev];
+                        const index = prev.findIndex(
+                          (todo) => todo.id === item.id
+                        );
+
+                        newTodos[index].name = e.target.value;
+                        return newTodos;
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      handleKeyDown(e, item.id);
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-between">
+
                 <input
-                  type="checkbox"
-                  checked={item.status}
-                  onChange={() => handleCheck(i, !item.status)}
-                />
-                <input
-                  disabled={edit !== i}
-                  id={`${item.id}`}
-                  type="text"
-                  name={item.name}
-                  ref={(el) => (ref.current[i] = el)}
-                  value={item.name}
-                  className={`pl-3 ${item.status ? "line-through" : {}}`}
+                  type="number"
+                  
+                  value={item.point}
                   onBlur={() => handleBlur(item.id)}
                   onFocus={() => {
-                    setPrevValue(item.name);
+                    setPrevNum(item.point);
+                    // console.log(item.point);
+                    
                   }}
                   onChange={(e) => {
                     setTodos((prev) => {
@@ -159,16 +208,22 @@ export default function Home() {
                         (todo) => todo.id === item.id
                       );
 
-                      newTodos[index].name = e.target.value;
+                      newTodos[index].point = Number(e.target.value) 
                       return newTodos;
                     });
                   }}
                   onKeyDown={(e) => {
                     handleKeyDown(e, item.id);
                   }}
+                  disabled={edit !== i}
+                  className="w-10"
+                  min={1}
+                  max={100}
+
                 />
 
                 <div className="">{item.priority}</div>
+                </div>
 
                 <div className="flex justify-end gap-5">
                   <button
