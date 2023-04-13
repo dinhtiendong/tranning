@@ -7,8 +7,8 @@ import { useState } from "react";
 import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
-import { configureStore } from '@reduxjs/toolkit';
-import { createWrapper } from 'next-redux-wrapper';
+import { configureStore } from "@reduxjs/toolkit";
+import { createWrapper } from "next-redux-wrapper";
 import produce from "immer";
 
 interface TodoProp {
@@ -72,7 +72,6 @@ export default function Home() {
     });
   };
 
-
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>,
     idItem: number
@@ -97,7 +96,6 @@ export default function Home() {
 
   useEffect(() => {
     if (ref.current[edit]) {
-
       ref.current[edit]!.focus();
     }
   }, [edit]);
@@ -131,7 +129,6 @@ export default function Home() {
               className="w-10 mr-3"
               value={point}
               onChange={(e) => handleChange(e)}
-
             />
             <select value={priority} onChange={(e) => handleSelect(e)}>
               <option value={"Hight"}>Hight</option>
@@ -151,9 +148,11 @@ export default function Home() {
         <ul className="w-[80%] box-border pl-5">
           {todos.map((item, i) => {
             return (
-              <li key={i} className="grid grid-cols-3 gap-10 items-center justify-between">
+              <li
+                key={i}
+                className="grid grid-cols-3 gap-10 items-center justify-between"
+              >
                 <div className="flex">
-
                   <input
                     type="checkbox"
                     checked={item.status}
@@ -167,7 +166,9 @@ export default function Home() {
                     name={item.name}
                     ref={(el) => (ref.current[i] = el)}
                     value={item.name}
-                    className={`pl-3 ${item.status ? "line-through" : {}} w-full flex justify-between`}
+                    className={`pl-3 ${
+                      item.status ? "line-through" : {}
+                    } w-full flex justify-between`}
                     onBlur={() => handleBlur(item.id)}
                     onFocus={() => {
                       setPrevValue(item.name);
@@ -190,39 +191,39 @@ export default function Home() {
                 </div>
 
                 <div className="flex justify-between">
+                  <input
+                    type="number"
+                    value={item.point}
+                    onBlur={() => handleBlur(item.id)}
+                    onFocus={() => {
+                      setPrevNum(item.point);
+                      // console.log(item.point);
+                    }}
+                    onChange={(e) => {
+                      setTodos((prev) => {
+                        const newTodos = [...prev];
+                        const index = prev.findIndex(
+                          (todo) => todo.id === item.id
+                        );
 
-                <input
-                  type="number"
-                  
-                  value={item.point}
-                  onBlur={() => handleBlur(item.id)}
-                  onFocus={() => {
-                    setPrevNum(item.point);
-                    // console.log(item.point);
-                    
-                  }}
-                  onChange={(e) => {
-                    setTodos((prev) => {
-                      const newTodos = [...prev];
-                      const index = prev.findIndex(
-                        (todo) => todo.id === item.id
-                      );
+                        newTodos[index].point = Number(e.target.value);
+                        return newTodos;
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      handleKeyDown(e, item.id);
+                    }}
+                    disabled={edit !== i}
+                    className="w-10"
+                    min={1}
+                    max={100}
+                  />
 
-                      newTodos[index].point = Number(e.target.value) 
-                      return newTodos;
-                    });
-                  }}
-                  onKeyDown={(e) => {
-                    handleKeyDown(e, item.id);
-                  }}
-                  disabled={edit !== i}
-                  className="w-10"
-                  min={1}
-                  max={100}
-
-                />
-
-                <div className="">{item.priority}</div>
+                  <select value={priority}>
+                    <option value={"Hight"}>Hight</option>
+                    <option value={"Medium"}>Medium</option>
+                    <option value={"Low"}>Low</option>
+                  </select>
                 </div>
 
                 <div className="flex justify-end gap-5">
