@@ -9,7 +9,7 @@ import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import produce from "immer";
-import { addTodo, deleteTodo,handleCheck,editTodo,handleBlurRedux,handleOnKeyDownRedux } from "./store/todoSlide";
+import { addTodo, deleteTodo,handleCheck,editTodo,editNumTodo,handleBlurRedux,handleOnKeyDownRedux } from "./store/todoSlide";
 import {  TodoProp } from "./interfaces";
 import { RootState } from "./store/store";
 import { v4 } from "uuid";
@@ -30,7 +30,6 @@ export default function Home() {
 
   const min = 1;
   const max = 100;
-  const editStatus = ["high", "medium", "low"];
 
   // useEffect(() => {
   //   console.log("Status", priority);
@@ -46,8 +45,8 @@ export default function Home() {
           name : works,
           status: false,
           point: point,
-          priority: priority
-        
+          priority: priority,
+          flag: false
       })
     );
       
@@ -63,7 +62,7 @@ export default function Home() {
   };
 
   const handleEditJob = ( id: number) => {
-      setEdit(-1)    
+      setEdit(id)    
   };
 
   const handleBlur = (id: string) => {
@@ -75,7 +74,9 @@ export default function Home() {
     idItem: string
   ) => {
     if (event.key === "Enter") {
-      dispatch(handleOnKeyDownRedux({id:idItem,idx: edit }))
+
+          setEdit(-1)
+      
     }
   };
 
@@ -87,20 +88,20 @@ export default function Home() {
     if (ref.current[edit]) {
       ref.current[edit]!.focus();
     }
+    console.log(edit);
+    
   }, [edit]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPriority(e.target.value);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNumChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(min, Math.min(max, Number(e.target.value)));
     setPoint(value);
   };
 
-  const update = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPriority(e.target.value);
-  };
+
   return (
     <div className="flex items-center justify-center h-screen w-vw bg-[#489cc1]">
       <div className="flex flex-col h-auto gap-8 bg-white items-center justify-center relative ">
@@ -180,20 +181,13 @@ export default function Home() {
                   <input
                     type="number"
                     value={todoProp.point}
-                    // onBlur={() => handleBlur(todoProp.id)}
+                    onBlur={() => handleBlur(todoProp.id)}
                     onFocus={() => {
                       setPrevNum(todoProp.point);
-                      // console.log(todoProp.point);
                     }}
                     onChange={(e) => {
-                      // setTodos((prev) => {
-                      //   const newTodos = [...prev];
-                      //   const index = prev.findIndex(
-                      //     (todo) => todo.id === todoProp.id
-                      //   );
-                      //   newTodos[index].point = Number(e.target.value)
-                      //   return newTodos;
-                      // });
+                      dispatch(editNumTodo({value:Number(e.target.value),id:todoProp.id}))
+                      // handleNumChange
                     }}
                     onKeyDown={(e) => {
                       handleKeyDown(e, todoProp.id);
@@ -205,16 +199,12 @@ export default function Home() {
                   />
 
                   <div className="">
-                    <select onChange={(e) => update(e)}>
-                      {editStatus.map((status, i) => {
-                        return (
-                          <option value={status} key={i}>
-                            {todoProp.priority}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
+                        <select value={todoProp.priority} onChange={handleSelect}>
+                        <option value={"High"}>High</option>
+                        <option value={"Medium"}>Medium</option>
+                        <option value={"Low"}>Low</option>
+                      </select>
+                      </div>
                 </div>
 
                 <div className="flex justify-end gap-5">

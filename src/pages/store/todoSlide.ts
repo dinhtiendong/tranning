@@ -27,6 +27,17 @@ export const todoSlide = createSlice({
           
                 return state;
         },
+        editNumTodo: (state: TodoProp[],action:PayloadAction<{value: number,id: string }> ) =>{
+
+           
+            const index = state.findIndex(
+              (todo) => todo.id === action.payload.id
+            );
+
+            state[index].point = action.payload.value;
+      
+            return state;
+    },
         deleteTodo: (state: TodoProp[],action:PayloadAction<string> ) =>{
 
                 return state.filter((e) => e.id !== action.payload);
@@ -59,7 +70,7 @@ export const todoSlide = createSlice({
         const result = state.find((e) => e.id === action.payload.id);
 
         if (result?.id === action.payload.id) {
-          
+                state[action.payload.idx].flag = true
         }
   
          return state;   
@@ -70,4 +81,4 @@ export const todoSlide = createSlice({
 
 
 export default todoSlide.reducer;
-export const { addTodo,deleteTodo,editTodo,handleCheck,handleBlurRedux,handleOnKeyDownRedux } = todoSlide.actions
+export const { addTodo,deleteTodo,editTodo,editNumTodo,handleCheck,handleBlurRedux,handleOnKeyDownRedux } = todoSlide.actions
