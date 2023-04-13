@@ -219,7 +219,7 @@ export default function Home() {
                     max={100}
                   />
 
-                  <select value={priority}>
+                  <select value={priority} onChange={handleSelect}>
                     <option value={"Hight"}>Hight</option>
                     <option value={"Medium"}>Medium</option>
                     <option value={"Low"}>Low</option>
