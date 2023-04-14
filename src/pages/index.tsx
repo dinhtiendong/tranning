@@ -8,7 +8,7 @@ import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
-import produce from "immer";
+import { Radio } from "antd";
 import {
   addTodo,
   deleteTodo,
@@ -16,6 +16,7 @@ import {
   editTodo,
   editNumTodo,
   handleBlurRedux,
+  handleChangeOption
 } from "./store/todoSlide";
 import { TodoProp } from "./interfaces";
 import { RootState } from "./store/store";
@@ -32,32 +33,15 @@ export default function Home() {
   const [priority, setPriority] = useState("Medium");
   const [point, setPoint] = useState(1);
   const [keyWords, setKeyWords] = useState("");
+  const [clickOption, setClickOption] = useState(false);
+  const [checkValue, setCheckValue] = useState<String>("All");
   const ref = useRef<Array<HTMLDivElement | null>>([]);
   const dispatch = useDispatch();
-
-  const min = 1;
-  const max = 100;
-
 
 
   const newStatus = ["High", "Medium", "Low"];
   const handleAddState = () => {
-    dispatch(
-      addTodo({
-        id: v4(),
-        name: works,
-        status: false,
-        point: point,
-        priority: priority,
-        flag: false,
-      })
-    );
-
-    setWorks("");
-    setPoint(1);
-  };
-  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (works)
       dispatch(
         addTodo({
           id: v4(),
@@ -68,6 +52,23 @@ export default function Home() {
           flag: false,
         })
       );
+
+    setWorks("");
+    setPoint(1);
+  };
+  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (works)
+        dispatch(
+          addTodo({
+            id: v4(),
+            name: works,
+            status: false,
+            point: point,
+            priority: priority,
+            flag: false,
+          })
+        );
 
       setWorks("");
       setPoint(1);
@@ -80,6 +81,7 @@ export default function Home() {
 
   const handleEditJob = (id: number) => {
     setEdit(id);
+    
   };
 
   const handleBlur = (id: string) => {
@@ -103,15 +105,18 @@ export default function Home() {
     if (ref.current[edit]) {
       ref.current[edit]!.focus();
     }
-    console.log(edit);
   }, [edit]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPriority(e.target.value);
   };
 
-  const handleRadio = (e: React.FormEvent<HTMLFormElement>) =>{
-
+  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckValue(event.target.value);
+  };
+  const handleChangePriority = (e: React.ChangeEvent<HTMLSelectElement>,id: string)=>
+  {
+    dispatch(handleChangeOption({value: e.target.value,id}))
   }
 
   return (
@@ -136,24 +141,35 @@ export default function Home() {
 
         <div className="flex flex-col w-[300px] gap-y-3">
           <div className="font-bold">Filter By Status</div>
-          <form className="flex justify-between" onChange={(e)=>handleRadio(e)}>
-            <span>
-              <input type="radio" name="chooseStatus" /> All
-            </span>
-            <span>
-              <input type="radio" name="chooseStatus" /> Completed
-            </span>
-            <span>
-         
-              <input type="radio" name="chooseStatus" /> Todo
-            </span>
-          </form>
-          
+          <Radio.Group>
+            <Radio value={"All"} onChange={radioHandler}>
+              All
+            </Radio>
+            <Radio value={"Completed"} onChange={radioHandler}>
+              Completed
+            </Radio>
+            <Radio value={"Todo"} onChange={radioHandler}>
+              Todo
+            </Radio>
+          </Radio.Group>
         </div>
 
         <ul className="w-[80%] box-border pl-5">
           {todoList
-            .filter((item) => item.name.includes(keyWords))
+            .filter((item) => {
+              if (item.name.includes(keyWords)) {
+                {
+                  switch (checkValue) {
+                    case "Completed":
+                      return item.status === true;
+                    case "Todo":
+                      return item.status === false;
+                    default:
+                      return item;
+                  }
+                }
+              }
+            })
             .map((todoProp: TodoProp, i: number) => (
               <li
                 key={todoProp.id}
@@ -219,7 +235,10 @@ export default function Home() {
                   <div className="">
                     <select
                       value={todoProp.priority}
-                      onChange={(e) => handleSelect(e)}
+                      onChange={(e) => {
+                        // console.log("e", e.target.value);
+                        handleChangePriority(e,todoProp.id)
+                      }}
                     >
                       {newStatus.map((status, i) => {
                         return (

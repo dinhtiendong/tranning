@@ -76,11 +76,20 @@ export const todoSlide = createSlice({
   
          return state;   
     },
-    
+    handleChangeOption:(state: TodoProp[],action:PayloadAction<{value: string,id: string}> )=>{
+                 const index = state.findIndex(
+                (todo) => todo.id === action.payload.id
+              );
+  
+              state[index].priority = action.payload.value;
+        
+              return state;
+        }
+
      }
 
 })
 
 
 export default todoSlide.reducer;
-export const { addTodo,deleteTodo,editTodo,editNumTodo,handleCheck,handleBlurRedux,handleOnKeyDownRedux } = todoSlide.actions
+export const { addTodo,deleteTodo,editTodo,editNumTodo,handleChangeOption,handleCheck,handleBlurRedux,handleOnKeyDownRedux } = todoSlide.actions
