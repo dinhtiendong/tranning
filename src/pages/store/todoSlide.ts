@@ -16,6 +16,7 @@ export const todoSlide = createSlice({
                       
             return state;
         },
+
         editTodo: (state: TodoProp[],action:PayloadAction<{value: string,id: string }> ) =>{
 
            
@@ -75,6 +76,7 @@ export const todoSlide = createSlice({
   
          return state;   
     },
+    
      }
 
 })
