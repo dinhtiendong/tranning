@@ -13,6 +13,7 @@ export const todoSlide = createSlice({
             }
 
             state.push(newTodo);
+
                       
             return state;
         },
@@ -44,10 +45,15 @@ export const todoSlide = createSlice({
                 return state.filter((e) => e.id !== action.payload);
           
         },
-        handleCheck:(state: TodoProp[],action:PayloadAction<{idx: number, newStatus: boolean}> )=>{
+        handleCheck:(state: TodoProp[],action:PayloadAction<{id: string, newStatus: boolean}> )=>{
 
-                state[action.payload.idx].status = action.payload.newStatus;
+                const index = state.findIndex(
+                        (todo) => todo.id === action.payload.id
+                      );
                 
+                state[index].status = action.payload.newStatus;
+                
+                        console.log("test: ",index);
                 
         },
 
