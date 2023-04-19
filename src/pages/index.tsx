@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useRef } from "react";
@@ -12,6 +12,8 @@ import { BiPlusMedical } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import { Radio } from "antd";
 import ReactPaginate from "react-paginate";
+import Pagination from "../pages/Pagination";
+import _ from "lodash";
 import {
   addTodo,
   deleteTodo,
@@ -43,11 +45,13 @@ export default function Home() {
   const [checkValue, setCheckValue] = useState<String>("All");
   const ref = useRef<Array<HTMLDivElement | null>>([]);
   const dispatch = useDispatch();
-  const [currentItems, setCurrentItems] = useState<React.SetStateAction<TodoProp[]>>([]);
+  const [currentItems, setCurrentItems] = useState<TodoProp[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
   const newStatus = ["High", "Medium", "Low"];
   const itemsPerPage = 2;
+  const [totalPage,setTotalPage ] = useState<number>(1)
+  const [currentPage,setCurrentPage] = useState<number>(1)
   
   const handleAddState = () => {
     if (works)
@@ -130,19 +134,22 @@ export default function Home() {
   useEffect(() => {
     const endOffset = itemOffset + itemsPerPage;
     
-    setCurrentItems(todoList.slice(itemOffset, endOffset));
+    setCurrentItems(fillterItems.slice(itemOffset, endOffset));
     
-    setPageCount(Math.ceil(todoList.length / itemsPerPage));
+    setTotalPage(Math.ceil(todoList.length / itemsPerPage));
   }, [itemOffset, itemsPerPage,todoList]);
-
+  
   // đoạn này xử lý để lấy ra vị trí đầu tiên của danh sách những phần tử muốn lấy ra ở trang hiện tại
-  const handlePageClick = (selected: number ) => {
+  const handlePageChange = (selected: number ) => {
     const newOffset = (selected * itemsPerPage) % todoList.length;
 
     setItemOffset(newOffset);
+
   };
-  
-  
+
+  const fillterItems = useMemo(()=>{
+    return _.filter(todoList,(item: { name: string | string[]; }) =>item.name.includes(keyWords))
+  },[todoList,keyWords])
 
   return (
     <div className="relative flex items-center justify-center h-screen w-vw bg-[#489cc1] ">
@@ -294,31 +301,13 @@ export default function Home() {
                 </li>
               ))}
         </ul>
-              
-              {
+                        <Pagination
 
-                <ReactPaginate
-                  className="w-full flex items-center justify-between"
-                  nextLabel="next >"
-                  onPageChange={(e) => handlePageClick(e.selected)}
-                  pageRangeDisplayed={3}
-                  marginPagesDisplayed={2}
-                  pageCount={pageCount}
-                  previousLabel="< previous"
-                  pageClassName="page-item"
-                  pageLinkClassName="page-link"
-                  previousClassName="page-item"
-                  previousLinkClassName="page-link"
-                  nextClassName="page-item"
-                  nextLinkClassName="page-link"
-                  breakLabel="..."
-                  breakClassName="page-item"
-                  breakLinkClassName="page-link"
-                  containerClassName="pagination"
-                  activeClassName="active"
-                  renderOnZeroPageCount={null}
-                /> 
-              }
+                          currentPage={currentPage}
+                          totalPage={totalPage}
+                          setCurrentPage={setCurrentPage}
+                          onChangePage= {handlePageChange}
+                        />
               
         <div className="flex m-5">
           <button
