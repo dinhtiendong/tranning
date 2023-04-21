@@ -53,7 +53,6 @@ export const todoSlide = createSlice({
                 
                 state[index].status = action.payload.newStatus;
                 
-                        console.log("test: ",index);
                 
         },
 

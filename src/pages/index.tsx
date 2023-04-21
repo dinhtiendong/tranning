@@ -9,11 +9,11 @@ import React, { useEffect, useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
+import { BsArrowDownSquare, BsArrowUpSquare } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
-import { Radio } from "antd";
+import { Radio, Result } from "antd";
 import ReactPaginate from "react-paginate";
 import Pagination from "../pages/Pagination";
-import _ from "lodash";
 import {
   addTodo,
   deleteTodo,
@@ -40,19 +40,38 @@ export default function Home() {
   const [priority, setPriority] = useState("Medium");
   const [point, setPoint] = useState(1);
   const [keyWords, setKeyWords] = useState("");
+  const [date, setDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [open, setOpen] = useState(true);
+  const [timeStamp, setTimeStamp] = useState(1);
   const [checkValue, setCheckValue] = useState<String>("All");
   const ref = useRef<Array<HTMLDivElement | null>>([]);
   const dispatch = useDispatch();
+  const [sortTime, setSortTime] = useState(true);
   const [currentItems, setCurrentItems] = useState<TodoProp[]>([]);
-  const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
   const newStatus = ["High", "Medium", "Low"];
   const itemsPerPage = 2;
-  const [totalPage,setTotalPage ] = useState<number>(1)
-  const [currentPage,setCurrentPage] = useState<number>(1)
-  
+  const [totalPage, setTotalPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const getTime = () => {
+    return date.toLocaleDateString();
+  };
+  const getTimeStamp = () => {
+    return date.getTime();
+  };
+  let timer = getTime();
+  let valueTimeStamp = getTimeStamp();
+  const updated = setInterval(() => {
+    setDate(new Date());
+    setTimeStamp(new Date().getTime());
+    timer = getTime();
+    valueTimeStamp = getTimeStamp();
+  });
+
+  setTimeout(function () {
+    clearInterval(updated);
+  }, 1000);
   const handleAddState = () => {
     if (works)
       dispatch(
@@ -63,12 +82,13 @@ export default function Home() {
           point: point,
           priority: priority,
           flag: false,
+          time: timer,
+          timeStamp: timeStamp,
         })
       );
 
     setOpen(false);
     setShowModal(false);
-    // setCurrentItems(todoList)
     setWorks("");
     setPoint(1);
   };
@@ -77,7 +97,6 @@ export default function Home() {
     if (e.key === "Enter") {
       handleAddState();
     }
-    
   };
 
   const handleDeleteJob = (todoId: string) => {
@@ -103,7 +122,6 @@ export default function Home() {
 
   const handleCheckBox = (id: string, newStatus: boolean) => {
     dispatch(handleCheck({ id, newStatus }));
-    
   };
 
   useEffect(() => {
@@ -131,25 +149,45 @@ export default function Home() {
     setOpen(true);
   };
 
-  useEffect(() => {
+  const todoFilter = useMemo(() => {
+    const result = todoList.filter((item: TodoProp) => {
+      if (item.name.includes(keyWords)) {
+        {
+          switch (checkValue) {
+            case "Completed":
+              return item.status === true;
+            case "Todo":
+              return item.status === false;
+            default:
+              return item;
+          }
+        }
+      }
+    });
+    if (sortTime) {
+      result.sort((a, b) => a.timeStamp - b.timeStamp);
+    } else {
+      result.sort((a, b) => b.timeStamp - a.timeStamp);
+    }
+
     const endOffset = itemOffset + itemsPerPage;
-    
-    setCurrentItems(fillterItems.slice(itemOffset, endOffset));
-    
-    setTotalPage(Math.ceil(todoList.length / itemsPerPage));
-  }, [itemOffset, itemsPerPage,todoList]);
-  
-  // đoạn này xử lý để lấy ra vị trí đầu tiên của danh sách những phần tử muốn lấy ra ở trang hiện tại
-  const handlePageChange = (selected: number ) => {
-    const newOffset = (selected * itemsPerPage) % todoList.length;
+
+    setCurrentItems(result.slice(itemOffset, endOffset));
+
+    setTotalPage(Math.ceil(result.length / itemsPerPage));
+
+    return result;
+  }, [itemOffset, todoList, itemsPerPage, checkValue, keyWords, sortTime]);
+
+  useEffect(() => {
+    console.log("todoList", todoList);
+  }, [todoList]);
+
+  const handlePageChange = (selected: number) => {
+    const newOffset = (selected * itemsPerPage) % todoFilter.length;
 
     setItemOffset(newOffset);
-
   };
-
-  const fillterItems = useMemo(()=>{
-    return _.filter(todoList,(item: { name: string | string[]; }) =>item.name.includes(keyWords))
-  },[todoList,keyWords])
 
   return (
     <div className="relative flex items-center justify-center h-screen w-vw bg-[#489cc1] ">
@@ -162,7 +200,6 @@ export default function Home() {
           <div className="font-bold">Search Anything you want</div>
           <div className="flex items-center border border-black">
             <input
-              // value={keyWords}
               type={"text"}
               onChange={(e) => setKeyWords(e.target.value)}
               className="outline-none px-4 py-2 w-[300px] box-border mr-2"
@@ -170,7 +207,21 @@ export default function Home() {
             />
           </div>
         </div>
-
+        <div className="flex flex-col gap-y-3 justify-start">
+          <div className="font-bold">Sort By Time</div>
+          <div className="flex gap-5">
+            <BsArrowUpSquare
+              size={24}
+              className="cursor-pointer"
+              onClick={() => setSortTime(true)}
+            />
+            <BsArrowDownSquare
+              size={24}
+              className="cursor-pointer"
+              onClick={() => setSortTime(false)}
+            />
+          </div>
+        </div>
         <div className="flex flex-col w-[300px] gap-y-3">
           <div className="font-bold">Filter By Status</div>
           <Radio.Group>
@@ -185,130 +236,114 @@ export default function Home() {
             </Radio>
           </Radio.Group>
         </div>
-  
+
         <ul className="w-[80%] box-border pl-5">
-          {currentItems &&
-            currentItems
-              .filter((item: TodoProp) => {
-                if (item.name.includes(keyWords)) {
-                  {
-                    switch (checkValue) {
-                      case "Completed":
-                        return item.status === true;
-                      case "Todo":
-                        return item.status === false;
-                      default:
-                        return item;
-                    }
-                  }
-                }
-               }
-              )
-              .map((todoProp: TodoProp, i: number) => (
-                <li
-                  key={todoProp.id}
-                  className="grid grid-cols-3 gap-10 items-center justify-between"
+          {currentItems.map((todoProp: TodoProp, i: number) => (
+            <li
+              key={todoProp.id}
+              className="grid grid-cols-3 gap-10 items-center justify-between"
+            >
+              <div className="flex">
+                <input
+                  type="checkbox"
+                  checked={todoProp.status}
+                  onChange={() => handleCheckBox(todoProp.id, !todoProp.status)}
+                  className="w-full inline-block"
+                />
+                <input
+                  disabled={edit !== i}
+                  id={`${todoProp.id}`}
+                  type="text"
+                  ref={(el) => (ref.current[i] = el)}
+                  value={todoProp.name}
+                  className={`pl-3 ${
+                    todoProp.status ? "line-through" : {}
+                  } w-full flex justify-between`}
+                  onBlur={() => handleBlur(todoProp.id)}
+                  onFocus={() => {
+                    setPrevValue(todoProp.name);
+                  }}
+                  onChange={(e) => {
+                    dispatch(
+                      editTodo({ value: e.target.value, id: todoProp.id })
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e, todoProp.id);
+                  }}
+                />
+              </div>
+
+              <div className="flex justify-between">
+                <input
+                  type="number"
+                  value={todoProp.point}
+                  onBlur={() => handleBlur(todoProp.id)}
+                  onFocus={() => {
+                    setPrevNum(todoProp.point);
+                  }}
+                  onChange={(e) => {
+                    dispatch(
+                      editNumTodo({
+                        value: Number(e.target.value),
+                        id: todoProp.id,
+                      })
+                    );
+                    // handleNumChange
+                  }}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e, todoProp.id);
+                  }}
+                  disabled={edit !== i}
+                  className="w-10"
+                  min={1}
+                  max={100}
+                />
+
+                <div>
+                  <select
+                    value={todoProp.priority}
+                    onChange={(e) => {
+                      handleChangePriority(e, todoProp.id);
+                    }}
+                  >
+                    {newStatus.map((status, i) => {
+                      return (
+                        <option key={i} value={status}>
+                          {status}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-5">
+                <div className="flex items-center">{todoProp.time}</div>
+
+                <button
+                  onClick={() => handleDeleteJob(todoProp.id)}
+                  className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
                 >
-                  <div className="flex">
-                    <input
-                      type="checkbox"
-                      checked={todoProp.status}
-                      onChange={() => handleCheckBox(todoProp.id, !todoProp.status)}
-                      className="w-full inline-block"
-                    />
-                    <input
-                      disabled={edit !== i}
-                      id={`${todoProp.id}`}
-                      type="text"
-                      ref={(el) => (ref.current[i] = el)}
-                      value={todoProp.name}
-                      className={`pl-3 ${
-                        todoProp.status ? "line-through" : {}
-                      } w-full flex justify-between`}
-                      onBlur={() => handleBlur(todoProp.id)}
-                      onFocus={() => {
-                        setPrevValue(todoProp.name);
-                      }}
-                      onChange={(e) => {
-                        dispatch(
-                          editTodo({ value: e.target.value, id: todoProp.id })
-                        );
-                      }}
-                      onKeyDown={(e) => {
-                        handleKeyDown(e, todoProp.id);
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex justify-between">
-                    <input
-                      type="number"
-                      value={todoProp.point}
-                      onBlur={() => handleBlur(todoProp.id)}
-                      onFocus={() => {
-                        setPrevNum(todoProp.point);
-                      }}
-                      onChange={(e) => {
-                        dispatch(
-                          editNumTodo({
-                            value: Number(e.target.value),
-                            id: todoProp.id,
-                          })
-                        );
-                        // handleNumChange
-                      }}
-                      onKeyDown={(e) => {
-                        handleKeyDown(e, todoProp.id);
-                      }}
-                      disabled={edit !== i}
-                      className="w-10"
-                      min={1}
-                      max={100}
-                    />
-
-                    <div className="">
-                      <select
-                        value={todoProp.priority}
-                        onChange={(e) => {
-                          handleChangePriority(e, todoProp.id);
-                        }}
-                      >
-                        {newStatus.map((status, i) => {
-                          return (
-                            <option key={i} value={status}>
-                              {status}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-5">
-                    <button
-                      onClick={() => handleDeleteJob(todoProp.id)}
-                      className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
-                    >
-                      <AiFillDelete />
-                    </button>
-                    <button
-                      onClick={() => handleEditJob(i)}
-                      className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
-                    >
-                      <HiPencil />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                  <AiFillDelete />
+                </button>
+                <button
+                  onClick={() => handleEditJob(i)}
+                  className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
+                >
+                  <HiPencil />
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
-                        <Pagination
+        <Pagination
+          currentPage={currentPage}
+          totalPage={totalPage}
+          setCurrentPage={setCurrentPage}
+          onChangePage={handlePageChange}
+        />
 
-                          currentPage={currentPage}
-                          totalPage={totalPage}
-                          setCurrentPage={setCurrentPage}
-                          onChangePage= {handlePageChange}
-                        />
-              
         <div className="flex m-5">
           <button
             className="px-5 py-5 bg-[#489cc1] cursor-pointer text-black"
@@ -320,7 +355,11 @@ export default function Home() {
         </div>
 
         <Transition.Root show={showModal} as={Fragment}>
-          <Dialog as="div" className="relative z-10" onClose={() =>setShowModal(false)}>
+          <Dialog
+            as="div"
+            className="relative z-10"
+            onClose={() => setShowModal(false)}
+          >
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"

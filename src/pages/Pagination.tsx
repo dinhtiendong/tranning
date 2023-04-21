@@ -17,7 +17,6 @@ function Pagination({
     setCurrentPage(pageNumber);
   };
 
-
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
@@ -39,19 +38,12 @@ function Pagination({
                 aria-hidden="true"
                 onClick={(e) => {
                   if (currentPage !== 1) {
-
                     setCurrentPage(currentPage - 1);
-                    onChangePage(currentPage -2)
-
- 
+                    onChangePage(currentPage - 2);
                   } else {
                     e.preventDefault;
                   }
-                    
-
-
                 }}
- 
               />
             </a>
 
@@ -63,10 +55,10 @@ function Pagination({
                 className={`relative z-10 inline-flex items-center ${
                   i + 1 === currentPage ? "bg-indigo-600" : "bg-black"
                 }  px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
-                onClick={() =>{
-                  handleClickPaginate(i + 1)
-                  onChangePage(i)
-                } }
+                onClick={() => {
+                  handleClickPaginate(i + 1);
+                  onChangePage(i);
+                }}
               >
                 {i + 1}
               </a>
@@ -85,16 +77,11 @@ function Pagination({
                 aria-hidden="true"
                 onClick={(e) => {
                   if (currentPage !== totalPage) {
-
                     setCurrentPage(currentPage + 1);
-                    onChangePage(currentPage)
-
-
+                    onChangePage(currentPage);
                   } else {
                     e.preventDefault;
                   }
-
-                  
                 }}
               />
             </a>
