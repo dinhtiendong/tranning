@@ -2,61 +2,104 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
+import { Fragment, useMemo, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useRef } from "react";
-import { useState } from "react";
 import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
+<<<<<<< HEAD
 import { configureStore } from "@reduxjs/toolkit";
 import { createWrapper } from "next-redux-wrapper";
 import produce from "immer";
+=======
+import { BsArrowDownSquare, BsArrowUpSquare } from "react-icons/bs";
+import { useDispatch, useSelector } from "react-redux";
+import { Radio, Result } from "antd";
+import ReactPaginate from "react-paginate";
+import Pagination from "../pages/Pagination";
+import {
+  addTodo,
+  deleteTodo,
+  handleCheck,
+  editTodo,
+  editNumTodo,
+  handleBlurRedux,
+  handleChangeOption,
+} from "./store/todoSlide";
+import { TodoProp } from "./interfaces";
+import { RootState } from "./store/store";
+import { v4 } from "uuid";
+import ReactDOM from "react-dom";
+import { current } from "immer";
+>>>>>>> dong
 
-interface TodoProp {
-  id: number;
-  name: string;
-  status: boolean;
-  priority: string;
-  point: number;
-}
 export default function Home() {
+  const todoList = useSelector((state: RootState) => state.todo);
+
   const [edit, setEdit] = useState(-1);
-  const [works, setWorks] = useState("");
+
   const [prevValue, setPrevValue] = useState("");
   const [prevNum, setPrevNum] = useState(0);
-  // const [status, setStatus] = useState(false);
-  const [priority, setPriority] = useState("Hight");
+  const [works, setWorks] = useState("");
+  const [priority, setPriority] = useState("Medium");
   const [point, setPoint] = useState(1);
-  const [todos, setTodos] = useState<TodoProp[]>([]);
+  const [keyWords, setKeyWords] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [showModal, setShowModal] = useState(false);
+  const [open, setOpen] = useState(true);
+  const [timeStamp, setTimeStamp] = useState(1);
+  const [checkValue, setCheckValue] = useState<String>("All");
   const ref = useRef<Array<HTMLDivElement | null>>([]);
+  const dispatch = useDispatch();
+  const [sortTime, setSortTime] = useState(true);
+  const [currentItems, setCurrentItems] = useState<TodoProp[]>([]);
+  const [itemOffset, setItemOffset] = useState(0);
+  const newStatus = ["High", "Medium", "Low"];
+  const itemsPerPage = 2;
+  const [totalPage, setTotalPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const getTime = () => {
+    return date.toLocaleDateString();
+  };
+  const getTimeStamp = () => {
+    return date.getTime();
+  };
+  let timer = getTime();
+  let valueTimeStamp = getTimeStamp();
+  const updated = setInterval(() => {
+    setDate(new Date());
+    setTimeStamp(new Date().getTime());
+    timer = getTime();
+    valueTimeStamp = getTimeStamp();
+  });
 
-  const min = 1;
-  const max = 100;
-  useEffect(() => {
-    // console.log("totos", todos);
-  }, [todos]);
-
+  setTimeout(function () {
+    clearInterval(updated);
+  }, 1000);
   const handleAddState = () => {
-    if (works && point)
-      setTodos((prev) => [
-        ...prev,
-        {
-          id: Math.floor(Math.random() * 1000),
+    if (works)
+      dispatch(
+        addTodo({
+          id: v4(),
           name: works,
           status: false,
-          priority: priority,
           point: point,
-        },
-      ]);
+          priority: priority,
+          flag: false,
+          time: timer,
+          timeStamp: timeStamp,
+        })
+      );
+
+    setOpen(false);
+    setShowModal(false);
     setWorks("");
     setPoint(1);
   };
-  //
-  const handleDeleteJob = (todoId: number) => {
-    setTodos((prev) => {
-      return prev.filter((e) => e.id !== todoId);
-    });
-  };
 
+<<<<<<< HEAD
   const handleEditJob = (index: number) => {
     setEdit(index);
   };
@@ -82,16 +125,37 @@ export default function Home() {
       if (result?.id === idItem) {
         setEdit(-1);
       }
+=======
+  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleAddState();
+>>>>>>> dong
     }
   };
 
-  const handleCheck = (idx: number, newStatus: boolean) => {
-    console.log("idx", idx, newStatus);
-    const nextState = produce(todos, (draftState) => {
-      draftState[idx].status = newStatus;
-    });
+  const handleDeleteJob = (todoId: string) => {
+    dispatch(deleteTodo(todoId));
+  };
 
-    setTodos(nextState);
+  const handleEditJob = (id: number) => {
+    setEdit(id);
+  };
+
+  const handleBlur = (id: string) => {
+    dispatch(handleBlurRedux({ id, prevValue, prevNum }));
+  };
+
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    idItem: string
+  ) => {
+    if (event.key === "Enter") {
+      setEdit(-1);
+    }
+  };
+
+  const handleCheckBox = (id: string, newStatus: boolean) => {
+    dispatch(handleCheck({ id, newStatus }));
   };
 
   useEffect(() => {
@@ -104,25 +168,78 @@ export default function Home() {
     setPriority(e.target.value);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.max(min, Math.min(max, Number(e.target.value)));
-    setPoint(value);
+  const radioHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckValue(event.target.value);
   };
+  const handleChangePriority = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+    id: string
+  ) => {
+    dispatch(handleChangeOption({ value: e.target.value, id }));
+  };
+
+  const handleModal = () => {
+    setShowModal(true);
+    setOpen(true);
+  };
+
+  const todoFilter = useMemo(() => {
+    const result = todoList.filter((item: TodoProp) => {
+      if (item.name.includes(keyWords)) {
+        {
+          switch (checkValue) {
+            case "Completed":
+              return item.status === true;
+            case "Todo":
+              return item.status === false;
+            default:
+              return item;
+          }
+        }
+      }
+    });
+    if (sortTime) {
+      result.sort((a, b) => a.timeStamp - b.timeStamp);
+    } else {
+      result.sort((a, b) => b.timeStamp - a.timeStamp);
+    }
+
+    const endOffset = itemOffset + itemsPerPage;
+
+    setCurrentItems(result.slice(itemOffset, endOffset));
+
+    setTotalPage(Math.ceil(result.length / itemsPerPage));
+
+    return result;
+  }, [itemOffset, todoList, itemsPerPage, checkValue, keyWords, sortTime]);
+
+  useEffect(() => {
+    console.log("todoList", todoList);
+  }, [todoList]);
+
+  const handlePageChange = (selected: number) => {
+    const newOffset = (selected * itemsPerPage) % todoFilter.length;
+
+    setItemOffset(newOffset);
+  };
+
   return (
-    <div className="flex items-center justify-center h-screen w-vw bg-[#489cc1]">
-      <div className="flex flex-col h-auto gap-8 bg-white items-center justify-center relative ">
+    <div className="relative flex items-center justify-center h-screen w-vw bg-[#489cc1] ">
+      <div className="flex flex-col h-auto gap-8 bg-white items-center p-20">
         <div className="flex w-full items-center justify-center text-5xl font-bold">
           TODOLIST
         </div>
-        <div className="flex ">
-          <div className="flex items-center justify-center ml-5 border border-black mr-9">
+
+        <div className="flex flex-col gap-y-3">
+          <div className="font-bold">Search Anything you want</div>
+          <div className="flex items-center border border-black">
             <input
-              value={works}
               type={"text"}
-              onChange={(e) => setWorks(e.target.value)}
+              onChange={(e) => setKeyWords(e.target.value)}
               className="outline-none px-4 py-2 w-[300px] box-border mr-2"
-              placeholder="What needs to be done"
+              placeholder="Please input key word need search"
             />
+<<<<<<< HEAD
             <input
               type="number"
               placeholder="point"
@@ -135,17 +252,42 @@ export default function Home() {
               <option value={"Medium"}>Medium</option>
               <option value={"Low"}>Low</option>
             </select>
+=======
+>>>>>>> dong
           </div>
-
-          <button
-            className="px-5 py-5 bg-[#489cc1] cursor-pointer text-black"
-            onClick={handleAddState}
-          >
-            <BiPlusMedical size={24} />
-          </button>
+        </div>
+        <div className="flex flex-col gap-y-3 justify-start">
+          <div className="font-bold">Sort By Time</div>
+          <div className="flex gap-5">
+            <BsArrowUpSquare
+              size={24}
+              className="cursor-pointer"
+              onClick={() => setSortTime(true)}
+            />
+            <BsArrowDownSquare
+              size={24}
+              className="cursor-pointer"
+              onClick={() => setSortTime(false)}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col w-[300px] gap-y-3">
+          <div className="font-bold">Filter By Status</div>
+          <Radio.Group>
+            <Radio value={"All"} onChange={radioHandler}>
+              All
+            </Radio>
+            <Radio value={"Completed"} onChange={radioHandler}>
+              Completed
+            </Radio>
+            <Radio value={"Todo"} onChange={radioHandler}>
+              Todo
+            </Radio>
+          </Radio.Group>
         </div>
 
         <ul className="w-[80%] box-border pl-5">
+<<<<<<< HEAD
           {todos.map((item, i) => {
             return (
               <li
@@ -223,27 +365,197 @@ export default function Home() {
                     <option value={"Hight"}>Hight</option>
                     <option value={"Medium"}>Medium</option>
                     <option value={"Low"}>Low</option>
+=======
+          {currentItems.map((todoProp: TodoProp, i: number) => (
+            <li
+              key={todoProp.id}
+              className="grid grid-cols-3 gap-10 items-center justify-between"
+            >
+              <div className="flex">
+                <input
+                  type="checkbox"
+                  checked={todoProp.status}
+                  onChange={() => handleCheckBox(todoProp.id, !todoProp.status)}
+                  className="w-full inline-block"
+                />
+                <input
+                  disabled={edit !== i}
+                  id={`${todoProp.id}`}
+                  type="text"
+                  ref={(el) => (ref.current[i] = el)}
+                  value={todoProp.name}
+                  className={`pl-3 ${
+                    todoProp.status ? "line-through" : {}
+                  } w-full flex justify-between`}
+                  onBlur={() => handleBlur(todoProp.id)}
+                  onFocus={() => {
+                    setPrevValue(todoProp.name);
+                  }}
+                  onChange={(e) => {
+                    dispatch(
+                      editTodo({ value: e.target.value, id: todoProp.id })
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e, todoProp.id);
+                  }}
+                />
+              </div>
+
+              <div className="flex justify-between">
+                <input
+                  type="number"
+                  value={todoProp.point}
+                  onBlur={() => handleBlur(todoProp.id)}
+                  onFocus={() => {
+                    setPrevNum(todoProp.point);
+                  }}
+                  onChange={(e) => {
+                    dispatch(
+                      editNumTodo({
+                        value: Number(e.target.value),
+                        id: todoProp.id,
+                      })
+                    );
+                    // handleNumChange
+                  }}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e, todoProp.id);
+                  }}
+                  disabled={edit !== i}
+                  className="w-10"
+                  min={1}
+                  max={100}
+                />
+
+                <div>
+                  <select
+                    value={todoProp.priority}
+                    onChange={(e) => {
+                      handleChangePriority(e, todoProp.id);
+                    }}
+                  >
+                    {newStatus.map((status, i) => {
+                      return (
+                        <option key={i} value={status}>
+                          {status}
+                        </option>
+                      );
+                    })}
+>>>>>>> dong
                   </select>
                 </div>
+              </div>
 
-                <div className="flex justify-end gap-5">
-                  <button
-                    onClick={() => handleDeleteJob(item.id)}
-                    className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
-                  >
-                    <AiFillDelete />
-                  </button>
-                  <button
-                    onClick={() => handleEditJob(i)}
-                    className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
-                  >
-                    <HiPencil />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+              <div className="flex justify-end gap-5">
+                <div className="flex items-center">{todoProp.time}</div>
+
+                <button
+                  onClick={() => handleDeleteJob(todoProp.id)}
+                  className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
+                >
+                  <AiFillDelete />
+                </button>
+                <button
+                  onClick={() => handleEditJob(i)}
+                  className="my-2 cursor-pointer px-2 py-2 bg-blue-300 hover:bg-red-600 "
+                >
+                  <HiPencil />
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
+        <Pagination
+          currentPage={currentPage}
+          totalPage={totalPage}
+          setCurrentPage={setCurrentPage}
+          onChangePage={handlePageChange}
+        />
+
+        <div className="flex m-5">
+          <button
+            className="px-5 py-5 bg-[#489cc1] cursor-pointer text-black"
+            // onClick={handleAddState}
+            onClick={handleModal}
+          >
+            <BiPlusMedical size={24} />
+          </button>
+        </div>
+
+        <Transition.Root show={showModal} as={Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-10"
+            onClose={() => setShowModal(false)}
+          >
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 z-10 overflow-y-auto">
+              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                  enterTo="opacity-100 translate-y-0 sm:scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                >
+                  <Dialog.Panel className="flex flex-col gap-3 relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+                    <input
+                      value={works}
+                      type={"text"}
+                      onChange={(e) => setWorks(e.target.value)}
+                      className="outline-none px-4 py-2 w-[300px] border border-black mr-2"
+                      placeholder="What needs to be done"
+                      onKeyDown={(e) => {
+                        handleEnter(e);
+                      }}
+                    />
+                    <div>
+                      <label className="mr-8 font-bold">Score:</label>
+                      <input
+                        type="number"
+                        placeholder="point"
+                        className="w-10 mr-3"
+                        value={point}
+                        onChange={(e) => setPoint(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <span className="mr-8 font-bold">Status:</span>
+                      <select
+                        value={priority}
+                        onChange={(e) => handleSelect(e)}
+                      >
+                        <option value={"High"}>High</option>
+                        <option value={"Medium"}>Medium</option>
+                        <option value={"Low"}>Low</option>
+                      </select>
+                    </div>
+                    <button
+                      className="p-2 bg-green-500 rounded flex justify-center w-full"
+                      onClick={handleAddState}
+                    >
+                      Save
+                    </button>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition.Root>
       </div>
     </div>
   );
