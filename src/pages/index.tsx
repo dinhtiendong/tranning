@@ -29,6 +29,7 @@ import { v4 } from "uuid";
 import ReactDOM from "react-dom";
 import { current } from "immer";
 
+
 export default function Home() {
   const todoList = useSelector((state: RootState) => state.todo);
 
@@ -93,9 +94,11 @@ export default function Home() {
     setPoint(1);
   };
 
+
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleAddState();
+
     }
   };
 
@@ -238,6 +241,7 @@ export default function Home() {
         </div>
 
         <ul className="w-[80%] box-border pl-5">
+
           {currentItems.map((todoProp: TodoProp, i: number) => (
             <li
               key={todoProp.id}
@@ -314,6 +318,7 @@ export default function Home() {
                         </option>
                       );
                     })}
+
                   </select>
                 </div>
               </div>
