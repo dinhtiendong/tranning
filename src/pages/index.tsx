@@ -9,11 +9,6 @@ import React, { useEffect, useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { AiFillDelete } from "react-icons/ai";
 import { BiPlusMedical } from "react-icons/bi";
-<<<<<<< HEAD
-import { configureStore } from "@reduxjs/toolkit";
-import { createWrapper } from "next-redux-wrapper";
-import produce from "immer";
-=======
 import { BsArrowDownSquare, BsArrowUpSquare } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { Radio, Result } from "antd";
@@ -33,7 +28,7 @@ import { RootState } from "./store/store";
 import { v4 } from "uuid";
 import ReactDOM from "react-dom";
 import { current } from "immer";
->>>>>>> dong
+
 
 export default function Home() {
   const todoList = useSelector((state: RootState) => state.todo);
@@ -99,37 +94,11 @@ export default function Home() {
     setPoint(1);
   };
 
-<<<<<<< HEAD
-  const handleEditJob = (index: number) => {
-    setEdit(index);
-  };
 
-  const handleBlur = (idItem: number) => {
-    setTodos((prev) => {
-      const curPrev = [...prev];
-      const newValue = curPrev.findIndex((e) => e.id === idItem);
-      curPrev[newValue].name = prevValue;
-      curPrev[newValue].point = prevNum;
-
-      return curPrev;
-    });
-  };
-
-  const handleKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>,
-    idItem: number
-  ) => {
-    if (event.key === "Enter") {
-      const result = todos.find((e) => e.id === idItem);
-
-      if (result?.id === idItem) {
-        setEdit(-1);
-      }
-=======
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleAddState();
->>>>>>> dong
+
     }
   };
 
@@ -239,21 +208,6 @@ export default function Home() {
               className="outline-none px-4 py-2 w-[300px] box-border mr-2"
               placeholder="Please input key word need search"
             />
-<<<<<<< HEAD
-            <input
-              type="number"
-              placeholder="point"
-              className="w-10 mr-3"
-              value={point}
-              onChange={(e) => handleChange(e)}
-            />
-            <select value={priority} onChange={(e) => handleSelect(e)}>
-              <option value={"Hight"}>Hight</option>
-              <option value={"Medium"}>Medium</option>
-              <option value={"Low"}>Low</option>
-            </select>
-=======
->>>>>>> dong
           </div>
         </div>
         <div className="flex flex-col gap-y-3 justify-start">
@@ -287,85 +241,7 @@ export default function Home() {
         </div>
 
         <ul className="w-[80%] box-border pl-5">
-<<<<<<< HEAD
-          {todos.map((item, i) => {
-            return (
-              <li
-                key={i}
-                className="grid grid-cols-3 gap-10 items-center justify-between"
-              >
-                <div className="flex">
-                  <input
-                    type="checkbox"
-                    checked={item.status}
-                    onChange={() => handleCheck(i, !item.status)}
-                    className="w-full inline-block"
-                  />
-                  <input
-                    disabled={edit !== i}
-                    id={`${item.id}`}
-                    type="text"
-                    name={item.name}
-                    ref={(el) => (ref.current[i] = el)}
-                    value={item.name}
-                    className={`pl-3 ${
-                      item.status ? "line-through" : {}
-                    } w-full flex justify-between`}
-                    onBlur={() => handleBlur(item.id)}
-                    onFocus={() => {
-                      setPrevValue(item.name);
-                    }}
-                    onChange={(e) => {
-                      setTodos((prev) => {
-                        const newTodos = [...prev];
-                        const index = prev.findIndex(
-                          (todo) => todo.id === item.id
-                        );
 
-                        newTodos[index].name = e.target.value;
-                        return newTodos;
-                      });
-                    }}
-                    onKeyDown={(e) => {
-                      handleKeyDown(e, item.id);
-                    }}
-                  />
-                </div>
-
-                <div className="flex justify-between">
-                  <input
-                    type="number"
-                    value={item.point}
-                    onBlur={() => handleBlur(item.id)}
-                    onFocus={() => {
-                      setPrevNum(item.point);
-                      // console.log(item.point);
-                    }}
-                    onChange={(e) => {
-                      setTodos((prev) => {
-                        const newTodos = [...prev];
-                        const index = prev.findIndex(
-                          (todo) => todo.id === item.id
-                        );
-
-                        newTodos[index].point = Number(e.target.value);
-                        return newTodos;
-                      });
-                    }}
-                    onKeyDown={(e) => {
-                      handleKeyDown(e, item.id);
-                    }}
-                    disabled={edit !== i}
-                    className="w-10"
-                    min={1}
-                    max={100}
-                  />
-
-                  <select value={priority} onChange={handleSelect}>
-                    <option value={"Hight"}>Hight</option>
-                    <option value={"Medium"}>Medium</option>
-                    <option value={"Low"}>Low</option>
-=======
           {currentItems.map((todoProp: TodoProp, i: number) => (
             <li
               key={todoProp.id}
@@ -442,7 +318,7 @@ export default function Home() {
                         </option>
                       );
                     })}
->>>>>>> dong
+
                   </select>
                 </div>
               </div>
